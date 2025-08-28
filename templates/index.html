@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payroll Report Generator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(45deg, #4472C4, #5a67d8);
+            color: white;
+            padding: 40px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+        
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+        
+        .form-container {
+            padding: 40px;
+        }
+        
+        .form-group {
+            margin-bottom: 30px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+            font-size: 1rem;
+        }
+        
+        .input-field {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+        
+        .input-field:focus {
+            outline: none;
+            border-color: #4472C4;
+            box-shadow: 0 0 0 3px rgba(68, 114, 196, 0.1);
+        }
+        
+        .file-upload {
+            position: relative;
+            display: block;
+            width: 100%;
+            min-height: 120px;
+            border: 3px dashed #cbd5e0;
+            border-radius: 15px;
+            background: #f8fafc;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            text-align: center;
+            overflow: hidden;
+        }
+        
+        .file-upload:hover {
+            border-color: #4472C4;
+            background: #f0f4ff;
+        }
+        
+        .file-upload.dragover {
+            border-color: #4472C4;
+            background: #e6f3ff;
+            transform: scale(1.02);
+        }
+        
+        .file-upload input[type="file"] {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            cursor: pointer;
+        }
+        
+        .upload-content {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100%;
+            padding: 20px;
+            pointer-events: none;
+        }
+        
+        .upload-icon {
+            font-size: 3rem;
+            margin-bottom: 10px;
+            color: #a0aec0;
+        }
+        
+        .upload-text {
+            color: #4a5568;
+            font-weight: 500;
+            margin-bottom: 5px;
+        }
+        
+        .upload-subtext {
+            color: #a0aec0;
+            font-size: 0.9rem;
+        }
+        
+        .file-name {
+            margin-top: 10px;
+            padding: 8px 16px;
+            background: #e6f3ff;
+            color: #2d3748;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+        
+        .generate-btn {
+            width: 100%;
+            background: linear-gradient(45deg, #4472C4, #5a67d8);
+            color: white;
+            border: none;
+            padding: 16px 32px;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 20px;
+        }
+        
+        .generate-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(68, 114, 196, 0.3);
+        }
+        
+        .generate-btn:disabled {
+            background: #a0aec0;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .status {
+            margin-top: 20px;
+            padding: 16px;
+            border-radius: 10px;
+            text-align: center;
+            font-weight: 500;
+            display: none;
+        }
+        
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f1b0b7;
+        }
+        
+        .status.processing {
+            background: #e2f3ff;
+            color: #0c5460;
+            border: 1px solid #b8daff;
+        }
+        
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #4472C4;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            animation: spin 1s linear infinite;
+            display: inline-block;
+            margin-right: 10px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .required {
+            color: #e53e3e;
+        }
+        
+        .download-btn {
+            display: inline-block;
+            background: #28a745;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            margin-top: 10px;
+            transition: background 0.3s ease;
+        }
+        
+        .download-btn:hover {
+            background: #218838;
+            text-decoration: none;
+            color: white;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                margin: 10px;
+                border-radius: 15px;
+            }
+            
+            .header {
+                padding: 30px 20px;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .form-container {
+                padding: 30px 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Payroll Report Generator</h1>
+            <p>Transform your CSV files into a comprehensive Excel payroll report</p>
+        </div>
+        
+        <div class="form-container">
+            <form id="payrollForm" enctype="multipart/form-data">
+                <div class="form-group">
+                    <label for="fileName">Excel File Name <span class="required">*</span></label>
+                    <input type="text" id="fileName" name="filename" class="input-field" placeholder="e.g., payroll-report-august" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="hoursFile">Hours CSV File <span class="required">*</span></label>
+                    <div class="file-upload" id="hoursUpload">
+                        <input type="file" id="hoursFile" name="hoursFile" accept=".csv" required>
+                        <div class="upload-content">
+                            <div class="upload-icon">📊</div>
+                            <div class="upload-text">Drop your hours CSV here</div>
+                            <div class="upload-subtext">or click to browse</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="tipsFile">Tips CSV File (Optional)</label>
+                    <div class="file-upload" id="tipsUpload">
+                        <input type="file" id="tipsFile" name="tipsFile" accept=".csv">
+                        <div class="upload-content">
+                            <div class="upload-icon">💰</div>
+                            <div class="upload-text">Drop your tips CSV here</div>
+                            <div class="upload-subtext">or click to browse (optional)</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <button type="submit" class="generate-btn" id="generateBtn">
+                    Generate Excel Report
+                </button>
+                
+                <div id="status" class="status"></div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function setupFileUpload(uploadElement, fileInput) {
+            uploadElement.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                uploadElement.classList.add('dragover');
+            });
+
+            uploadElement.addEventListener('dragleave', () => {
+                uploadElement.classList.remove('dragover');
+            });
+
+            uploadElement.addEventListener('drop', (e) => {
+                e.preventDefault();
+                uploadElement.classList.remove('dragover');
+                const files = e.dataTransfer.files;
+                if (files.length > 0) {
+                    fileInput.files = files;
+                    updateFileDisplay(files[0], uploadElement);
+                }
+            });
+
+            fileInput.addEventListener('change', (e) => {
+                if (e.target.files.length > 0) {
+                    updateFileDisplay(e.target.files[0], uploadElement);
+                }
+            });
+        }
+
+        function updateFileDisplay(file, uploadElement) {
+            const uploadContent = uploadElement.querySelector('.upload-content');
+            uploadContent.innerHTML = `
+                <div class="upload-icon">✓</div>
+                <div class="upload-text">File selected</div>
+                <div class="file-name">${file.name}</div>
+            `;
+        }
+
+        function showStatus(message, type, downloadUrl = null) {
+            const status = document.getElementById('status');
+            let content = message;
+            
+            if (type === 'success' && downloadUrl) {
+                content += `<br><a href="${downloadUrl}" class="download-btn">Download Excel Report</a>`;
+            }
+            
+            status.innerHTML = content;
+            status.className = `status ${type}`;
+            status.style.display = 'block';
+        }
+
+        // Setup file uploads
+        setupFileUpload(
+            document.getElementById('hoursUpload'),
+            document.getElementById('hoursFile')
+        );
+
+        setupFileUpload(
+            document.getElementById('tipsUpload'),
+            document.getElementById('tipsFile')
+        );
+
+        // Form submission
+        document.getElementById('payrollForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const generateBtn = document.getElementById('generateBtn');
+            const formData = new FormData(e.target);
+            
+            generateBtn.disabled = true;
+            generateBtn.innerHTML = '<div class="spinner"></div>Processing...';
+            showStatus('Processing payroll data...', 'processing');
+
+            try {
+                const response = await fetch('/generate', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showStatus(data.message, 'success', data.download_url);
+                } else {
+                    showStatus(data.error || 'An error occurred', 'error');
+                }
+                
+            } catch (error) {
+                console.error('Error:', error);
+                showStatus('Network error. Please try again.', 'error');
+            } finally {
+                generateBtn.disabled = false;
+                generateBtn.textContent = 'Generate Excel Report';
+            }
+        });
+    </script>
+</body>
+</html>
